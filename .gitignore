@@ -29,3 +29,5 @@ output_files/folds/*.csv
 # OS
 .DS_Store
 Thumbs.db"data/BPI_Challenge_2012.xes" 
+
+data/BPI_Challenge_2012.xes
