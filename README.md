@@ -22,8 +22,8 @@ This project reproduces the LSTM-based predictive process monitoring approach fr
 
 | Dataset | Metric | Original Paper | Our Result | Status |
 |---------|--------|----------------|------------|--------|
-| Helpdesk | Next activity accuracy | ~71% | **71.25%** | ✅ |
-| BPIC 2012 W | Next activity accuracy | ~76% | **76.20%** | ✅ |
+| Helpdesk | Next activity accuracy | ~71% | **71.25%** | succesfully reproduced |
+| BPIC 2012 W | Next activity accuracy | ~76% | **76.20%** | succesfully reproduced |
 
 ## Proposed Improvement
 
@@ -207,8 +207,8 @@ This filters to only W_ activities (manually executed work items) and creates `b
 
 | Model | Dataset | Features | Val Loss | Accuracy | Status |
 |-------|---------|----------|----------|----------|--------|
-| `model_17-1.51.h5` | Helpdesk | 14 | 1.51 | 71.25% | succesfully reproduced |
-| `model_bpic_29-1.67.h5` | BPIC W | 11 | 1.67 | 76.20% | succesfully reproduced |
+| `model_17-1.51.h5` | Helpdesk | 14 | 1.51 | 71.25% | completed |
+| `model_bpic_29-1.67.h5` | BPIC W | 11 | 1.67 | 76.20% | completed |
 | `model_resources_29-1.53.h5` | BPIC W | 80 | 1.53 | upcoming | upcoming |
 
 ## Future Work
