@@ -10,26 +10,44 @@ Author: Niek Tax
 '''
 
 from __future__ import print_function, division
-from keras.models import Sequential, Model
-from keras.layers.core import Dense
-from keras.layers.recurrent import LSTM, GRU, SimpleRNN
-from keras.layers import Input
-from keras.utils.data_utils import get_file
-from keras.optimizers import Nadam
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.layers.normalization import BatchNormalization
+#from keras.models import Sequential, Model
+#from keras.layers.core import Dense
+#from keras.layers.recurrent import LSTM, GRU, SimpleRNN
+#from keras.layers import Input
+#from keras.utils.data_utils import get_file
+#from keras.optimizers import Nadam
+#from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+#from keras.layers import BatchNormalization
+
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Dense, LSTM, GRU, SimpleRNN, Input, BatchNormalization
+from tensorflow.keras.optimizers import Nadam
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+
+
 from collections import Counter
 import unicodecsv
 import numpy as np
 import random
-import sys
+import sys  # ADD THIS
+
+# Python 2/3 compatibility - ADD THIS WHOLE BLOCK
+if sys.version_info[0] >= 3:
+    unicode = str
+    unichr = chr
+    try:
+        from itertools import izip
+    except ImportError:
+        izip = zip
+
 import os
 import copy
 import csv
 import time
-from itertools import izip
 from datetime import datetime
 from math import log
+
+
 
 
 eventlog = "helpdesk.csv"
@@ -124,11 +142,11 @@ step = 1
 sentences = []
 softness = 0
 next_chars = []
-lines = map(lambda x: x+'!',lines) #put delimiter symbol
+lines = list(map(lambda x: x+'!',lines)) #put delimiter symbol
 maxlen = max(map(lambda x: len(x),lines)) #find maximum line size
 
 # next lines here to get all possible characters for events and annotate them with numbers
-chars = map(lambda x: set(x),lines)
+chars = list(map(lambda x: set(x),lines))
 chars = list(set().union(*chars))
 chars.sort()
 target_chars = copy.copy(chars)
@@ -207,30 +225,32 @@ fold1_t = timeseqs[:elems_per_fold]
 fold1_t2 = timeseqs2[:elems_per_fold]
 fold1_t3 = timeseqs3[:elems_per_fold]
 fold1_t4 = timeseqs4[:elems_per_fold]
-with open('output_files/folds/fold1.csv', 'wb') as csvfile:
+with open('output_files/folds/fold1.csv', 'w', newline='', encoding='utf-8') as csvfile:
     spamwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for row, timeseq in izip(fold1, fold1_t):
-        spamwriter.writerow([unicode(s).encode("utf-8") +'#{}'.format(t) for s, t in izip(row, timeseq)])
+        spamwriter.writerow([unicode(s) + '#{}'.format(t) for s, t in izip(row, timeseq)])
+
 
 fold2 = lines[elems_per_fold:2*elems_per_fold]
 fold2_t = timeseqs[elems_per_fold:2*elems_per_fold]
 fold2_t2 = timeseqs2[elems_per_fold:2*elems_per_fold]
 fold2_t3 = timeseqs3[elems_per_fold:2*elems_per_fold]
 fold2_t4 = timeseqs4[elems_per_fold:2*elems_per_fold]
-with open('output_files/folds/fold2.csv', 'wb') as csvfile:
+with open('output_files/folds/fold2.csv', 'w', newline='', encoding='utf-8') as csvfile:
     spamwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for row, timeseq in izip(fold2, fold2_t):
-        spamwriter.writerow([unicode(s).encode("utf-8") +'#{}'.format(t) for s, t in izip(row, timeseq)])
+        spamwriter.writerow([unicode(s) + '#{}'.format(t) for s, t in izip(row, timeseq)])
+
 
 fold3 = lines[2*elems_per_fold:]
 fold3_t = timeseqs[2*elems_per_fold:]
 fold3_t2 = timeseqs2[2*elems_per_fold:]
 fold3_t3 = timeseqs3[2*elems_per_fold:]
 fold3_t4 = timeseqs4[2*elems_per_fold:]
-with open('output_files/folds/fold3.csv', 'wb') as csvfile:
+with open('output_files/folds/fold3.csv', 'w', newline='', encoding='utf-8') as csvfile:
     spamwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for row, timeseq in izip(fold3, fold3_t):
-        spamwriter.writerow([unicode(s).encode("utf-8") +'#{}'.format(t) for s, t in izip(row, timeseq)])
+        spamwriter.writerow([unicode(s) + '#{}'.format(t) for s, t in izip(row, timeseq)])
 
 lines = fold1 + fold2
 lines_t = fold1_t + fold2_t
@@ -242,7 +262,7 @@ step = 1
 sentences = []
 softness = 0
 next_chars = []
-lines = map(lambda x: x+'!',lines)
+lines = list(map(lambda x: x+'!',lines))
 
 sentences_t = []
 sentences_t2 = []
@@ -306,24 +326,24 @@ for i, sentence in enumerate(sentences):
         else:
             y_a[i, target_char_indices[c]] = softness/(len(target_chars)-1)
     y_t[i] = next_t/divisor
-    np.set_printoptions(threshold=np.nan)
+    np.set_printoptions(threshold=sys.maxsize)
 
 # build the model: 
 print('Build model...')
 main_input = Input(shape=(maxlen, num_features), name='main_input')
 # train a 2-layer LSTM with one shared layer
-l1 = LSTM(100, implementation=2, kernel_initializer='glorot_uniform', return_sequences=True, dropout=0.2)(main_input) # the shared layer
+l1 = LSTM(100, kernel_initializer='glorot_uniform', return_sequences=True, dropout=0.2)(main_input)
 b1 = BatchNormalization()(l1)
-l2_1 = LSTM(100, implementation=2, kernel_initializer='glorot_uniform', return_sequences=False, dropout=0.2)(b1) # the layer specialized in activity prediction
+l2_1 = LSTM(100, kernel_initializer='glorot_uniform', return_sequences=False, dropout=0.2)(b1)
 b2_1 = BatchNormalization()(l2_1)
-l2_2 = LSTM(100, implementation=2, kernel_initializer='glorot_uniform', return_sequences=False, dropout=0.2)(b1) # the layer specialized in time prediction
+l2_2 = LSTM(100, kernel_initializer='glorot_uniform', return_sequences=False, dropout=0.2)(b1)
 b2_2 = BatchNormalization()(l2_2)
 act_output = Dense(len(target_chars), activation='softmax', kernel_initializer='glorot_uniform', name='act_output')(b2_1)
 time_output = Dense(1, kernel_initializer='glorot_uniform', name='time_output')(b2_2)
 
 model = Model(inputs=[main_input], outputs=[act_output, time_output])
 
-opt = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=1e-08, schedule_decay=0.004, clipvalue=3)
+opt = Nadam(learning_rate=0.002, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=3)
 
 model.compile(loss={'act_output':'categorical_crossentropy', 'time_output':'mae'}, optimizer=opt)
 early_stopping = EarlyStopping(monitor='val_loss', patience=42)
